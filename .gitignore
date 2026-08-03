@@ -1,0 +1,10 @@
+auth.json
+credentials.json
+.env
+venv/
+__pycache__/
+linkedin.html
+first_card.html
+*.pyc
+.vscode/
+.idea/
