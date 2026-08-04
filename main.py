@@ -3,13 +3,7 @@ from scraper import scrape_jobs
 from sheets import append_jobs
 
 
-def main():
-    # -----------------------------
-    # User Inputs
-    # -----------------------------
-    job_title = input("Enter Job Title: ")
-    location = input("Enter Location: ")
-
+def run_scraper(job_title, location):
     # -----------------------------
     # Launch LinkedIn & Apply Filters
     # -----------------------------
@@ -31,14 +25,34 @@ def main():
 
         print(f"\nTotal Jobs Scraped: {len(jobs)}")
 
+        return {
+            "status": "success",
+            "jobs_scraped": len(jobs)
+        }
+
     except Exception as e:
         print(f"\nError: {e}")
 
-    finally:
-        input("\nPress Enter to close the browser...")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
+    finally:
         browser.close()
         playwright.stop()
+
+
+def main():
+    # -----------------------------
+    # User Inputs
+    # -----------------------------
+    job_title = input("Enter Job Title: ")
+    location = input("Enter Location: ")
+
+    result = run_scraper(job_title, location)
+
+    print(result)
 
 
 if __name__ == "__main__":
