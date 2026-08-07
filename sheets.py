@@ -118,22 +118,24 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-# Read Google credentials from Render environment variable
+# -----------------------------------
+# Authenticate with Google
+# -----------------------------------
+
 credentials_json = os.getenv("GOOGLE_CREDENTIALS")
 
-if not credentials_json:
-    raise ValueError(
-        "GOOGLE_CREDENTIALS environment variable is not set."
+if credentials_json:
+    # Running on Render
+    credentials = Credentials.from_service_account_info(
+        json.loads(credentials_json),
+        scopes=SCOPES
     )
-
-# Convert JSON string to Python dictionary
-credentials_dict = json.loads(credentials_json)
-
-# Authenticate with Google
-credentials = Credentials.from_service_account_info(
-    credentials_dict,
-    scopes=SCOPES
-)
+else:
+    # Running locally
+    credentials = Credentials.from_service_account_file(
+        "credentials.json",
+        scopes=SCOPES
+    )
 
 client = gspread.authorize(credentials)
 
