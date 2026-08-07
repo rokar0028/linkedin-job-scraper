@@ -8,3 +8,4 @@ first_card.html
 *.pyc
 .vscode/
 .idea/
+auth_old.json

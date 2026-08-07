@@ -1,3 +1,5 @@
+import os
+import json
 from playwright.sync_api import sync_playwright
 
 
@@ -8,10 +10,26 @@ def automate_search(job_title, location):
     then returns the Playwright objects.
     """
 
+    # -----------------------------------
+    # Create auth.json from Render secret
+    # -----------------------------------
+    if not os.path.exists("auth.json"):
+        auth_data = os.getenv("LINKEDIN_AUTH")
+
+        if not auth_data:
+            raise ValueError(
+                "No auth.json found and LINKEDIN_AUTH environment variable is not set."
+            )
+
+        with open("auth.json", "w", encoding="utf-8") as f:
+            json.dump(json.loads(auth_data), f)
+
     playwright = sync_playwright().start()
 
     # Launch Browser
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(
+        headless=True
+    )
 
     # Load LinkedIn Login Session
     context = browser.new_context(storage_state="auth.json")
