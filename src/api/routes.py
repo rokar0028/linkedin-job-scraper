@@ -8,7 +8,7 @@ from src.core.config import settings
 app = FastAPI(
     title="LinkedIn Job Scraper API",
     description="Automated Playwright-based LinkedIn Job Scraper syncing to Google Sheets.",
-    version="2.0.0"
+    version="2.1.0"
 )
 
 # In-memory store for async background tasks
@@ -20,6 +20,8 @@ def background_scrape_worker(
     job_title: str,
     location: str,
     remote: str,
+    date_posted: Optional[str],
+    experience_level: Optional[str],
     max_jobs: Optional[int]
 ):
     """Background worker function executing the scraper pipeline."""
@@ -29,6 +31,8 @@ def background_scrape_worker(
             job_title=job_title,
             location=location,
             remote=remote,
+            date_posted=date_posted,
+            experience_level=experience_level,
             max_jobs=max_jobs
         )
         tasks_db[task_id]["status"] = result.get("status", "completed")
@@ -42,10 +46,14 @@ def background_scrape_worker(
 def home():
     return {
         "message": "Welcome to the LinkedIn Job Scraper API!",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "docs_url": "/docs",
         "headless_mode": settings.HEADLESS,
-        "default_max_jobs": settings.MAX_JOBS
+        "default_max_jobs": settings.MAX_JOBS,
+        "supported_filters": {
+            "date_posted": ["past_24h", "past_week", "past_month"],
+            "experience_level": ["internship", "entry", "associate", "mid_senior", "director", "executive"]
+        }
     }
 
 
@@ -68,6 +76,8 @@ def scrape_sync(request: ScrapeRequest):
         job_title=request.job_title,
         location=request.location or "",
         remote=request.remote or "no",
+        date_posted=request.date_posted,
+        experience_level=request.experience_level,
         max_jobs=request.max_jobs
     )
 
@@ -101,6 +111,8 @@ def scrape_async(request: ScrapeRequest, background_tasks: BackgroundTasks):
         job_title=request.job_title,
         location=request.location or "",
         remote=request.remote or "no",
+        date_posted=request.date_posted,
+        experience_level=request.experience_level,
         max_jobs=request.max_jobs
     )
 

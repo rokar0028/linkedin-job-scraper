@@ -29,10 +29,25 @@ def main():
             break
         print("Please enter 'yes' or 'no'.")
 
-    max_jobs_input = input(f"Max jobs to scrape [{settings.MAX_JOBS}]: ").strip()
+    # Optional Date Posted Filter
+    print("\nDate Posted options: '24h', 'week', 'month' (or press Enter to skip)")
+    date_posted = input("Filter Date Posted [skip]: ").strip().lower() or None
+
+    # Optional Experience Level Filter
+    print("Experience options: 'internship', 'entry', 'associate', 'mid_senior', 'director' (or press Enter to skip)")
+    exp_level = input("Filter Experience Level [skip]: ").strip().lower() or None
+
+    max_jobs_input = input(f"\nMax jobs to scrape [{settings.MAX_JOBS}]: ").strip()
     max_jobs = int(max_jobs_input) if max_jobs_input.isdigit() else settings.MAX_JOBS
 
-    result = run_scraper(job_title, location, remote, max_jobs=max_jobs)
+    result = run_scraper(
+        job_title=job_title,
+        location=location,
+        remote=remote,
+        date_posted=date_posted,
+        experience_level=exp_level,
+        max_jobs=max_jobs
+    )
     print("\nResult Summary:", {k: v for k, v in result.items() if k != "jobs"})
 
 

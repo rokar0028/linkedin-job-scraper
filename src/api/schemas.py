@@ -6,6 +6,8 @@ class ScrapeRequest(BaseModel):
     job_title: str = Field(..., example="AI Engineer", description="Job title keyword to search")
     location: Optional[str] = Field("", example="San Francisco, CA", description="Target location")
     remote: Optional[str] = Field("no", example="yes", description="'yes' to filter remote roles, 'no' otherwise")
+    date_posted: Optional[str] = Field(None, example="past_24h", description="'past_24h', 'past_week', or 'past_month'")
+    experience_level: Optional[str] = Field(None, example="entry", description="'internship', 'entry', 'associate', 'mid_senior', 'director'")
     max_jobs: Optional[int] = Field(None, example=30, description="Max jobs to scrape (defaults to server config)")
 
 

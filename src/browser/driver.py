@@ -1,7 +1,7 @@
 import os
 import json
 import urllib.parse
-from typing import Tuple
+from typing import Tuple, Optional
 from playwright.sync_api import sync_playwright, Playwright, Browser, Page
 from src.core.config import settings
 
@@ -26,10 +26,41 @@ def get_auth_storage_state() -> str:
     )
 
 
-def build_search_url(job_title: str, location: str = "", remote: str = "no") -> str:
+# Filter Code Mappings for LinkedIn URL parameters
+DATE_POSTED_MAP = {
+    "past_24h": "r86400",
+    "24h": "r86400",
+    "day": "r86400",
+    "past_week": "r604800",
+    "week": "r604800",
+    "past_month": "r2592000",
+    "month": "r2592000",
+}
+
+EXP_LEVEL_MAP = {
+    "internship": "1",
+    "entry": "2",
+    "entry_level": "2",
+    "associate": "3",
+    "mid_senior": "4",
+    "mid": "4",
+    "director": "5",
+    "executive": "6",
+}
+
+
+def build_search_url(
+    job_title: str,
+    location: str = "",
+    remote: str = "no",
+    date_posted: Optional[str] = None,
+    experience_level: Optional[str] = None
+) -> str:
     """
     Builds a direct LinkedIn jobs search URL with query parameters.
-    f_WT=2 is LinkedIn's filter code for Remote.
+    - f_WT=2: Remote
+    - f_TPR: Date posted (r86400=24h, r604800=week, r2592000=month)
+    - f_E: Experience level (1=intern, 2=entry, 3=associate, 4=mid-senior)
     """
     base_url = "https://www.linkedin.com/jobs/search/?"
     params = {}
@@ -40,9 +71,21 @@ def build_search_url(job_title: str, location: str = "", remote: str = "no") -> 
     if location and location.strip():
         params["location"] = location.strip()
 
-    is_remote = str(remote).strip().lower() in ("yes", "true", "1", "y")
-    if is_remote:
+    # Remote filter
+    if remote and str(remote).strip().lower() in ("yes", "true", "1", "y"):
         params["f_WT"] = "2"
+
+    # Date posted filter
+    if date_posted:
+        key = str(date_posted).strip().lower()
+        if key in DATE_POSTED_MAP:
+            params["f_TPR"] = DATE_POSTED_MAP[key]
+
+    # Experience level filter
+    if experience_level:
+        key = str(experience_level).strip().lower()
+        if key in EXP_LEVEL_MAP:
+            params["f_E"] = EXP_LEVEL_MAP[key]
 
     return base_url + urllib.parse.urlencode(params)
 
@@ -50,7 +93,9 @@ def build_search_url(job_title: str, location: str = "", remote: str = "no") -> 
 def automate_search(
     job_title: str,
     location: str = "",
-    remote: str = "no"
+    remote: str = "no",
+    date_posted: Optional[str] = None,
+    experience_level: Optional[str] = None
 ) -> Tuple[Playwright, Browser, Page]:
     """
     Launches Playwright Chromium session and navigates directly to the filtered
@@ -86,13 +131,19 @@ def automate_search(
         )
         page = context.new_page()
 
-        search_url = build_search_url(job_title, location, remote)
-        print(f"[*] Navigating to direct search URL (Headless: {settings.HEADLESS})...")
+        search_url = build_search_url(
+            job_title=job_title,
+            location=location,
+            remote=remote,
+            date_posted=date_posted,
+            experience_level=experience_level
+        )
+        print(f"[*] Navigating to search URL (Headless: {settings.HEADLESS})...")
         print(f"    URL: {search_url}")
 
         page.goto(search_url, wait_until="domcontentloaded", timeout=settings.DEFAULT_TIMEOUT * 3)
 
-        # Wait for page title and search container
+        # Wait for page to settle
         page.wait_for_timeout(3000)
 
         # Check for potential auth redirect or checkpoint
