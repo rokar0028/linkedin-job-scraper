@@ -1,28 +1,12 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+"""
+Root ASGI application entrypoint.
+Delegates to the modular src.api package.
+"""
+from src.api.routes import app
+from src.api.schemas import ScrapeRequest
 
-from main import run_scraper
+__all__ = ["app", "ScrapeRequest"]
 
-app = FastAPI()
-
-
-class ScrapeRequest(BaseModel):
-    job_title: str
-    location: str
-
-
-@app.get("/")
-def home():
-    return {
-        "message": "Welcome to the LinkedIn Job Scraper API!"
-    }
-
-
-@app.post("/scrape")
-def scrape(request: ScrapeRequest):
-    result = run_scraper(
-        request.job_title,
-        request.location
-    )
-
-    return result
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

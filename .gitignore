@@ -1,11 +1,13 @@
 auth.json
+auth_old.json
 credentials.json
 .env
 venv/
 __pycache__/
+*.pyc
 linkedin.html
 first_card.html
-*.pyc
+*.log
+.DS_Store
 .vscode/
 .idea/
-auth_old.json
